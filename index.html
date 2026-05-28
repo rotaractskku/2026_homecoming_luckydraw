@@ -1,3 +1,10 @@
+전혀 어렵지 않습니다! 모바일 환경에서만 글씨가 비정상적으로 거대해지는 원인은 대부분 **모바일 브라우저의 '텍스트 자동 확대(Text Autosizing)' 기능** 때문입니다.
+
+스마트폰 브라우저들은 화면이 작을 때 사용자가 글자를 읽기 편하도록 텍스트 크기를 임의로 뻥튀기하는 특성이 있습니다. 이를 방지하는 CSS 속성(`-webkit-text-size-adjust: none;`)을 추가하고, 구형 모바일 브라우저에서도 정확한 비율을 유지하도록 안전장치(Fallback) 코드를 보완했습니다.
+
+아래 코드로 전체를 덮어쓰기 하신 후 깃허브에 다시 업로드(`Commit changes`)해 주시면 모바일에서도 PC와 동일한 비율로 깔끔하게 보이게 될 것입니다.
+
+```html
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -15,23 +22,20 @@
             height: 100vh;
             font-family: 'Malgun Gothic', sans-serif;
             overflow: hidden;
+            
+            /* 추가된 부분 1: 모바일 브라우저가 임의로 텍스트 크기를 확대하는 현상 방지 */
+            -webkit-text-size-adjust: none;
+            text-size-adjust: none;
         }
 
-        /* 수정된 부분 1: image-container
-           이미지와 숫자가 같이 커지고 작아지도록 묶어주는 영역의 기준을 설정합니다.
-           container-type을 지정하여 내부 텍스트가 이 영역의 너비를 인식하게 합니다.
-        */
         .image-container {
             position: relative;
-            width: 90%; /* 브라우저 창 너비의 90%를 차지하도록 유동성 부여 */
-            max-width: 1000px; /* 창을 무한정 키웠을 때 너무 거대해지는 것을 방지 */
+            width: 90%;
+            max-width: 1000px;
             margin-bottom: 30px;
             container-type: inline-size; 
         }
 
-        /* 수정된 부분 2: image
-           이미지가 컨테이너 너비에 맞춰 빈틈없이 100% 채워지도록 설정합니다.
-        */
         .image-container img {
             display: block;
             width: 100%;
@@ -44,18 +48,23 @@
             left: 54%; 
             transform: translate(-50%, -50%);
             
-            /* 수정된 부분 3: 반응형 폰트 크기
-               rem 단위 대신 cqw 단위를 사용하여 이미지 너비와 완벽하게 비례해 줄어듭니다.
-               만약 숫자가 "번" 글자보다 조금 크거나 작다면 아래 13cqw의 숫자를 미세 조정하세요. (예: 11cqw, 15cqw)
-            */
-            font-size: 8vw; /* 구버전 브라우저를 위한 대비책(Fallback) */
+            /* 추가된 부분 2: 최신 단위(cqw)를 지원하지 않는 일부 구형/모바일 브라우저를 위한 정확한 비율 계산 
+               컨테이너 너비(90vw)의 13%에 해당하는 11.7vw를 보조값으로 설정합니다. */
+            font-size: 11.7vw; 
             font-size: 13cqw; 
             
             font-weight: bold;
             color: black;
             text-align: center;
             z-index: 10;
-            white-space: nowrap; /* 숫자가 길어져도 줄바꿈되지 않도록 강제 */
+            white-space: nowrap; 
+        }
+
+        /* 추가된 부분 3: PC에서 창을 아주 크게 키웠을 때를 대비한 보조 브라우저용 한계선 설정 */
+        @media (min-width: 1111px) {
+            #number-display {
+                font-size: 130px; 
+            }
         }
 
         #circle-effect {
@@ -75,9 +84,6 @@
             animation: shrinkCircle 2s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
         }
 
-        /* 수정된 부분 4: 애니메이션 크기
-           원 애니메이션이 쪼그라들 때 시작되는 원의 크기 역시 브라우저 창 크기에 비례하도록 수정했습니다.
-        */
         @keyframes shrinkCircle {
             0% {
                 width: 200vw;
@@ -147,7 +153,7 @@
                 
                 isAnimating = false;
                 button.disabled = false;
-            }, 2000); // 2초 오차 없이 대기
+            }, 2000); 
         });
     </script>
 </body>
