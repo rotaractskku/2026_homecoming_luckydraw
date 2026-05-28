@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Get Lucky</title>
     <style>
-        /* 기본 바탕을 하얗게 설정하고 요소들을 화면 중앙에 배치합니다. */
         body {
             background-color: #ffffff;
             margin: 0;
@@ -15,61 +14,74 @@
             justify-content: center;
             height: 100vh;
             font-family: 'Malgun Gothic', sans-serif;
-            overflow: hidden; /* 원 애니메이션 시 화면 밖으로 나가는 스크롤바 방지 */
+            overflow: hidden;
         }
 
-        /* 이미지와 숫자가 겹쳐질 컨테이너 영역입니다. */
+        /* 수정된 부분 1: image-container
+           이미지와 숫자가 같이 커지고 작아지도록 묶어주는 영역의 기준을 설정합니다.
+           container-type을 지정하여 내부 텍스트가 이 영역의 너비를 인식하게 합니다.
+        */
         .image-container {
             position: relative;
-            display: inline-block;
+            width: 90%; /* 브라우저 창 너비의 90%를 차지하도록 유동성 부여 */
+            max-width: 1000px; /* 창을 무한정 키웠을 때 너무 거대해지는 것을 방지 */
             margin-bottom: 30px;
+            container-type: inline-size; 
         }
 
-        /* 첨부하신 이미지를 표시합니다. */
+        /* 수정된 부분 2: image
+           이미지가 컨테이너 너비에 맞춰 빈틈없이 100% 채워지도록 설정합니다.
+        */
         .image-container img {
             display: block;
-            max-width: 100%;
+            width: 100%;
             height: auto;
         }
 
-        /* 숫자가 표시될 공간의 위치와 스타일을 지정합니다. */
         #number-display {
             position: absolute;
             top: 50%;
-            left: 48%; /* 동아리 로고와 '번' 사이의 중앙 위치 (필요시 조정 가능) */
+            left: 54%; 
             transform: translate(-50%, -50%);
-            font-size: 8rem;
+            
+            /* 수정된 부분 3: 반응형 폰트 크기
+               rem 단위 대신 cqw 단위를 사용하여 이미지 너비와 완벽하게 비례해 줄어듭니다.
+               만약 숫자가 "번" 글자보다 조금 크거나 작다면 아래 13cqw의 숫자를 미세 조정하세요. (예: 11cqw, 15cqw)
+            */
+            font-size: 8vw; /* 구버전 브라우저를 위한 대비책(Fallback) */
+            font-size: 13cqw; 
+            
             font-weight: bold;
             color: black;
             text-align: center;
-            width: 80px;
             z-index: 10;
+            white-space: nowrap; /* 숫자가 길어져도 줄바꿈되지 않도록 강제 */
         }
 
-        /* 크기가 줄어드는 원의 초기 스타일입니다. */
         #circle-effect {
             position: absolute;
             top: 50%;
-            left: 54%; /* 숫자가 표시되는 위치와 동일하게 맞춥니다. */
+            left: 54%;
             transform: translate(-50%, -50%);
             border: 3px solid black;
             border-radius: 50%;
             background-color: transparent;
             opacity: 0;
-            pointer-events: none; /* 클릭 이벤트를 방해하지 않도록 설정 */
+            pointer-events: none;
             z-index: 5;
         }
 
-        /* 버튼 클릭 시 추가될 원의 애니메이션 클래스입니다. (정확히 2초 소요) */
         .animating {
             animation: shrinkCircle 2s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
         }
 
-        /* 원이 화면 바깥쪽 크기에서 중앙으로 줄어드는 애니메이션 키프레임 */
+        /* 수정된 부분 4: 애니메이션 크기
+           원 애니메이션이 쪼그라들 때 시작되는 원의 크기 역시 브라우저 창 크기에 비례하도록 수정했습니다.
+        */
         @keyframes shrinkCircle {
             0% {
-                width: 1500px;
-                height: 1500px;
+                width: 200vw;
+                height: 200vw;
                 opacity: 1;
             }
             100% {
@@ -79,7 +91,6 @@
             }
         }
 
-        /* Get Lucky! 버튼 스타일 */
         #lucky-btn {
             padding: 12px 30px;
             font-size: 1.2rem;
@@ -107,9 +118,7 @@
 
     <div class="image-container">
         <img src="luckydraw_image.png" alt="배경 이미지">
-        
         <div id="number-display"></div>
-        
         <div id="circle-effect"></div>
     </div>
 
@@ -122,29 +131,23 @@
         let isAnimating = false;
 
         button.addEventListener('click', () => {
-            // 애니메이션이 진행 중일 때는 중복 클릭을 방지합니다.
             if (isAnimating) return;
             isAnimating = true;
-            button.disabled = true; // 시각적으로도 버튼 비활성화
+            button.disabled = true;
 
-            // 1. 기존 숫자를 공란으로 변경
             numberDisplay.textContent = '';
 
-            // 2. 애니메이션 클래스를 제거했다가 다시 추가하여 애니메이션을 처음부터 재실행
             circle.classList.remove('animating');
-            void circle.offsetWidth; // 브라우저가 변경 사항을 강제로 다시 계산하도록 유도 (Reflow)
+            void circle.offsetWidth; 
             circle.classList.add('animating');
 
-            // 3. 정확히 2초(2000ms) 후에 숫자 표시 로직 실행
             setTimeout(() => {
-                // 1부터 50까지의 난수 생성
                 const randomNumber = Math.floor(Math.random() * 50) + 1;
                 numberDisplay.textContent = randomNumber;
                 
-                // 애니메이션 상태 종료 및 버튼 활성화
                 isAnimating = false;
                 button.disabled = false;
-            }, 2000);
+            }, 2000); // 2초 오차 없이 대기
         });
     </script>
 </body>
